@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".MainActivity"
+    tools:showIn="@layout/activity_main">
+
+    <Switch
+        android:id="@+id/switchService"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="Enable Service"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:id="@+id/scrollViewLocations"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/linearLayoutButtons"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/switchService">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textViewL1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upper Left Corner" />
+
+            <EditText
+                android:id="@+id/editTextLat0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Latitude"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/editTextLong0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Longitude"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:id="@+id/textViewL2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Upper Right Corner" />
+
+            <EditText
+                android:id="@+id/editTextLat1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Latitude"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/editTextLong1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Longitude"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:id="@+id/textViewL3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lower Right Corner" />
+
+            <EditText
+                android:id="@+id/editTextLat2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Latitude"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/editTextLong2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Longitude"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:id="@+id/textViewL4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lower Left Corner" />
+
+            <EditText
+                android:id="@+id/editTextLat3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Latitude"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/editTextLong3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Longitude"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:id="@+id/textViewE0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Exit 1" />
+
+            <EditText
+                android:id="@+id/editTextLatEx0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Latitude"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/editTextLongEx0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Longitude"
+                android:inputType="textPersonName" />
+
+            <TextView
+                android:id="@+id/textViewE1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Exit 2" />
+
+            <EditText
+                android:id="@+id/editTextLatEx1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Latitude"
+                android:inputType="textPersonName" />
+
+            <EditText
+                android:id="@+id/editTextLongEx1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Longitude"
+                android:inputType="textPersonName" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutButtons"
+        android:layout_width="149dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/switchService">
+
+        <Button
+            android:id="@+id/buttonSave"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Save" />
+
+        <Button
+            android:id="@+id/buttonDefaults"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Set to defaults" />
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
