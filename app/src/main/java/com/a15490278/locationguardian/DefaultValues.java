@@ -1,6 +1,6 @@
 package com.a15490278.locationguardian;
 
-public final class DefaultLocations {
+public final class DefaultValues {
 
     public static float[] LimitsLatitudes(){
         float[] latitudes = new float[4];
@@ -40,5 +40,14 @@ public final class DefaultLocations {
         longitudes[1] = -115.395133f;
 
         return longitudes;
+    }
+
+    public static int[] Hours(){
+        int[] hours = new int[2];
+
+        hours[0] = 800;
+        hours[1] = 1200;
+
+        return hours;
     }
 }

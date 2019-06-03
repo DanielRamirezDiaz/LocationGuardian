@@ -46,17 +46,21 @@
                 android:id="@+id/editTextLat0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Latitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <EditText
                 android:id="@+id/editTextLong0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Longitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <TextView
                 android:id="@+id/textViewL2"
@@ -68,17 +72,21 @@
                 android:id="@+id/editTextLat1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Latitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <EditText
                 android:id="@+id/editTextLong1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Longitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <TextView
                 android:id="@+id/textViewL3"
@@ -90,17 +98,21 @@
                 android:id="@+id/editTextLat2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Latitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <EditText
                 android:id="@+id/editTextLong2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Longitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <TextView
                 android:id="@+id/textViewL4"
@@ -112,17 +124,21 @@
                 android:id="@+id/editTextLat3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Latitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <EditText
                 android:id="@+id/editTextLong3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Longitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <TextView
                 android:id="@+id/textViewE0"
@@ -134,17 +150,21 @@
                 android:id="@+id/editTextLatEx0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Latitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <EditText
                 android:id="@+id/editTextLongEx0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Longitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <TextView
                 android:id="@+id/textViewE1"
@@ -156,17 +176,66 @@
                 android:id="@+id/editTextLatEx1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Latitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
 
             <EditText
                 android:id="@+id/editTextLongEx1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:ems="10"
                 android:hint="Longitude"
-                android:inputType="textPersonName" />
+                android:inputType="number"
+                android:numeric="signed|decimal" />
+        </LinearLayout>
+    </ScrollView>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayoutButtons"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/linearLayoutButtons"
+        app:layout_constraintTop_toBottomOf="@+id/switchService">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/textViewIH"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Initial Hour" />
+
+            <EditText
+                android:id="@+id/editTextIH"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="time" />
+
+            <TextView
+                android:id="@+id/textViewFH"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Final Hour" />
+
+            <EditText
+                android:id="@+id/editTextFH"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:inputType="time" />
+
         </LinearLayout>
     </ScrollView>
 

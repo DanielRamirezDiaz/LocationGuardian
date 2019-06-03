@@ -4,18 +4,46 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.Location;
+import android.location.LocationListener;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.widget.Toast;
 
 public class LocationReportService extends Service {
 
-    SharedPreferences sp;
+    private SharedPreferences sp;
 
-    float[] latitudes;
-    float[] longitudes;
+    private class LocationListener implements android.location.LocationListener {
 
+        Location lastLocation;
 
-    public LocationReportService() {
+        public LocationListener(String provider){
+            lastLocation = new Location(provider);
+        }
+
+        @Override
+        public void onLocationChanged(Location location) {
+            lastLocation.set(location);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            showToast("Location provider " + provider + " is disabled");
+        }
     }
 
     @Override
@@ -23,14 +51,6 @@ public class LocationReportService extends Service {
         super.onCreate();
 
         sp = getSharedPreferences(SharedKeys.Preferences, Context.MODE_PRIVATE);
-
-        latitudes = new float[4];
-        longitudes = new float[4];
-
-        for (int i = 0; i < 4; i++){
-            latitudes[i] = sp.getFloat(SharedKeys.LimitLatitude(i), 0);
-            longitudes[i] = sp.getFloat(SharedKeys.LimitLongitude(i),0);
-        }
 
         showToast("Location Guardian Service is enabled");
     }

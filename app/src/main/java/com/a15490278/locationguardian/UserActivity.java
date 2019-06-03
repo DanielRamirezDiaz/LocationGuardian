@@ -108,6 +108,8 @@ public class UserActivity extends AppCompatActivity {
 
                             showToast("User created");
 
+                            setResult(420);
+
                             finish();
                         }
                         else
@@ -131,6 +133,9 @@ public class UserActivity extends AppCompatActivity {
                             SharedPreferences.Editor e = sp.edit();
                             e.putBoolean(SharedKeys.Logged, true);
                             e.commit();
+
+                            setResult(420);
+
                             finish();
                         }
                         else {
@@ -161,6 +166,8 @@ public class UserActivity extends AppCompatActivity {
 
                             showToast("User data changed");
 
+                            setResult(420);
+
                             finish();
                         }
                         else
@@ -178,6 +185,8 @@ public class UserActivity extends AppCompatActivity {
                         e.commit();
 
                         MainActivity.fa.finish();
+                        stopService(new Intent(getApplicationContext(), LocationReportService.class));
+
                         finish();
 
                         startActivity(new Intent(getApplicationContext(), MainActivity.class));

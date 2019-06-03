@@ -2,10 +2,20 @@ package com.a15490278.locationguardian;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -17,16 +27,23 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import java.util.Calendar;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.CAMERA;
+
 @SuppressLint("ApplySharedPref")
 public class MainActivity extends AppCompatActivity {
 
     public static Activity fa;
 
+    private static final int PERMISSION_REQUEST_CODE = 200;
+
     SharedPreferences sp;
 
     Switch aSwitch;
     Button buttonDefaults, buttonSave;
-    EditText[] editTextsLimitsLat, editTextsLimitsLong, editTextsExitsLat, editTextsExitsLong;
+    EditText[] editTextsLimitsLat, editTextsLimitsLong, editTextsExitsLat, editTextsExitsLong, editTextsHour;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +73,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void login(){
-        startActivity(new Intent(getApplicationContext(), UserActivity.class));
+        startActivityForResult(new Intent(getApplicationContext(), UserActivity.class), 420);
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent){
+        if(!checkPermission()){
+            requestPermission();
+        }
+    }
+
 
     private void setSwitch(){
         aSwitch = findViewById(R.id.switchService);
@@ -68,17 +93,59 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharedPreferences.Editor e = sp.edit();
                 if(isChecked){
-                    startService(new Intent(getApplicationContext(), LocationReportService.class));
+                    if(!checkPermission()){
+                        requestPermission();
+                        aSwitch.setChecked(false);
+                        return;
+                    }
+                    try{
+                        String currentTimeS = Calendar.getInstance().getTime().toString().split(" ")[3].substring(0, 5);
+
+                        String[] splitCurrentTime = currentTimeS.split(":");
+
+                        int currentTime = (Integer.parseInt(splitCurrentTime[0]) * 100) + (Integer.parseInt(splitCurrentTime[1]));
+
+                        int initTime = sp.getInt(SharedKeys.Hour(0), 0);
+                        int finalTime = sp.getInt(SharedKeys.Hour(1), 0);
+
+
+                        Context context = getApplicationContext();
+
+                        Intent intent = new Intent(context, LocationReportService.class);
+
+                        if(currentTime >= initTime && currentTime <= finalTime){
+                            startService(intent);
+                        }
+                        else{
+                            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                            PendingIntent event = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+                            long milliseconds;
+
+                            if (currentTime < initTime)
+                                milliseconds = (initTime - currentTime) * 60000;
+                            else
+                                milliseconds = (initTime - currentTime + 2359) * 60000;
+
+                            alarmManager.set(AlarmManager.RTC_WAKEUP, milliseconds, event);
+                            showToast("Not in time. Alarm manager set.");
+                        }
+                    }catch (Exception ex){
+                        showToast("Something went wrong. Service will not start.");
+                        aSwitch.setChecked(false);
+                    }
+                    SharedPreferences.Editor e = sp.edit();
                     e.putBoolean(SharedKeys.ServiceState, true);
+                    e.commit();
                 }
                 else{
                     stopService(new Intent(getApplicationContext(), LocationReportService.class));
+                    SharedPreferences.Editor e = sp.edit();
                     e.putBoolean(SharedKeys.ServiceState, false);
-                }
+                    e.commit();
 
-                e.commit();
+                }
             }
         });
     }
@@ -95,8 +162,13 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                if(!areAllFieldsValid()){
+                if(!areCoordinatesValid()){
                     showToast("Invalid characters detected");
+                    return;
+                }
+
+                if(!areHoursValid()){
+                    showToast("Wrong time format.\nUse '00:00' - '23:59");
                     return;
                 }
 
@@ -105,6 +177,11 @@ public class MainActivity extends AppCompatActivity {
                 for(int i = 0; i < 4; i++){
                     e.putFloat(SharedKeys.LimitLatitude(i), Float.valueOf(editTextsLimitsLat[i].getText().toString()));
                     e.putFloat(SharedKeys.LimitLongitude(i), Float.valueOf(editTextsLimitsLong[i].getText().toString()));
+                }
+
+                for(int i = 0; i < 2; i++){
+                    int aux = Integer.parseInt(editTextsHour[i].getText().toString().replace(":" , ""));
+                    e.putInt(SharedKeys.Hour(i), aux);
                 }
 
                 e.commit();
@@ -117,10 +194,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                float[] limitsLatitudes = DefaultLocations.LimitsLatitudes();
-                float[] limitsLongitudes = DefaultLocations.LimitsLongitudes();
-                float[] exitsLatitudes = DefaultLocations.ExitsLatitudes();
-                float[] exitsLongitudes = DefaultLocations.ExitsLongitudes();
+                float[] limitsLatitudes = DefaultValues.LimitsLatitudes();
+                float[] limitsLongitudes = DefaultValues.LimitsLongitudes();
+                float[] exitsLatitudes = DefaultValues.ExitsLatitudes();
+                float[] exitsLongitudes = DefaultValues.ExitsLongitudes();
+                int[] hours = DefaultValues.Hours();
 
                 SharedPreferences.Editor editor = sp.edit();
 
@@ -136,8 +214,12 @@ public class MainActivity extends AppCompatActivity {
                     editTextsExitsLat[i].setText(String.valueOf(exitsLatitudes[i]));
                     editTextsExitsLong[i].setText(String.valueOf(exitsLongitudes[i]));
 
+                    editTextsHour[i].setText(intToTime(hours[i]));
+
                     editor.putFloat(SharedKeys.ExitLatitude(i), exitsLatitudes[i]);
                     editor.putFloat(SharedKeys.ExitLongitude(i), exitsLongitudes[i]);
+
+                    editor.putInt(SharedKeys.Hour(i), hours[i]);
                 }
 
                 editor.commit();
@@ -147,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private boolean areAllFieldsValid(){
+    private boolean areCoordinatesValid(){
         try{
             for(int i = 0; i < 4; i++){
                 Float.valueOf(editTextsLimitsLat[i].getText().toString());
@@ -166,6 +248,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private boolean areHoursValid(){
+            String regex24Hours = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$";
+
+            return editTextsHour[0].getText().toString().matches(regex24Hours) &&
+                    editTextsHour[1].getText().toString().matches(regex24Hours);
+    }
+
     private boolean areAllFieldsFull(){
         for(int i = 0; i < 4; i++){
             if(editTextsLimitsLat[i].getText().toString().length() == 0 || editTextsLimitsLong[i].getText().toString().length() == 0)
@@ -173,7 +262,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         for(int i = 0; i < 2; i++){
-            if(editTextsExitsLat[i].getText().toString().length() == 0 || editTextsExitsLong[i].getText().toString().length() == 0)
+            if(editTextsExitsLat[i].getText().toString().length() == 0 || editTextsExitsLong[i].getText().toString().length() == 0 ||
+                editTextsHour[i].getText().toString().length() == 0)
                 return false;
         }
 
@@ -185,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
         editTextsLimitsLong = new EditText[4];
         editTextsExitsLat = new EditText[2];
         editTextsExitsLong = new EditText[2];
+        editTextsHour = new EditText[2];
 
         editTextsLimitsLat[0] = findViewById(R.id.editTextLat0);
         editTextsLimitsLat[1] = findViewById(R.id.editTextLat1);
@@ -202,6 +293,9 @@ public class MainActivity extends AppCompatActivity {
         editTextsExitsLong[0] = findViewById(R.id.editTextLongEx0);
         editTextsExitsLong[1] = findViewById(R.id.editTextLongEx1);
 
+        editTextsHour[0] = findViewById(R.id.editTextIH);
+        editTextsHour[1] = findViewById(R.id.editTextFH);
+
         for(int i = 0; i < 4; i++){
             editTextsLimitsLat[i].setText(String.valueOf(sp.getFloat(SharedKeys.LimitLatitude(i), 0)));
             editTextsLimitsLong[i].setText(String.valueOf(sp.getFloat(SharedKeys.LimitLongitude(i), 0)));
@@ -210,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
         for(int i = 0; i < 2; i++){
             editTextsExitsLat[i].setText(String.valueOf(sp.getFloat(SharedKeys.ExitLatitude(i),0)));
             editTextsExitsLong[i].setText(String.valueOf(sp.getFloat(SharedKeys.ExitLongitude(i),0)));
+            editTextsHour[i].setText(intToTime(sp.getInt(SharedKeys.Hour(i), 0)));
         }
     }
 
@@ -221,7 +316,6 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 finish();
             }
         });
@@ -252,5 +346,86 @@ public class MainActivity extends AppCompatActivity {
 
     public void showToast(String text){
         Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+    }
+
+    public String intToTime(int intTime){
+        String time = String.valueOf(intTime);
+
+        if(time.length() == 1){
+            return "00:0" + intTime;
+        }
+        else if(time.length() == 2){
+            return "00:" + intTime;
+        }
+        else if (time.length() == 3){
+            int hours = intTime / 100;
+            String aux = "0" + hours + ":" + (intTime - (hours * 100));
+            if(aux.length() == 4)
+                aux = aux.concat("0");
+            return aux;
+        }
+        else{
+            int hours = intTime / 100;
+            String aux = hours + ":" + (intTime - (hours*100));
+            if(aux.length() == 4)
+                aux = aux.concat("0");
+            return aux;
+        }
+    }
+
+    private boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION);
+
+        return result == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0) {
+
+                    boolean locationAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+                    if (locationAccepted)
+                        showToast("Permission granted");
+                    else {
+                        showToast("Permission denied");
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
+                                showMessageOKCancel("You need to allow access to both the permissions",
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                    requestPermissions(new String[]{ACCESS_FINE_LOCATION},
+                                                            PERMISSION_REQUEST_CODE);
+                                                }
+                                            }
+                                        });
+                                return;
+                            }
+                        }
+
+                    }
+                }
+
+                break;
+        }
+    }
+
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(MainActivity.this)
+                .setMessage(message)
+                .setPositiveButton("OK", okListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
     }
 }
