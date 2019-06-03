@@ -12,7 +12,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -27,10 +26,9 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import java.util.Calendar;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.CAMERA;
+import static android.Manifest.permission.SEND_SMS;
 
 @SuppressLint("ApplySharedPref")
 public class MainActivity extends AppCompatActivity {
@@ -100,14 +98,10 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     try{
-                        String currentTimeS = Calendar.getInstance().getTime().toString().split(" ")[3].substring(0, 5);
+                        int currentTime = TimeCalculator.currentTime();
 
-                        String[] splitCurrentTime = currentTimeS.split(":");
-
-                        int currentTime = (Integer.parseInt(splitCurrentTime[0]) * 100) + (Integer.parseInt(splitCurrentTime[1]));
-
-                        int initTime = sp.getInt(SharedKeys.Hour(0), 0);
-                        int finalTime = sp.getInt(SharedKeys.Hour(1), 0);
+                        int initTime = TimeCalculator.initTime(sp);
+                        int finalTime = TimeCalculator.finalTime(sp);
 
 
                         Context context = getApplicationContext();
@@ -121,12 +115,7 @@ public class MainActivity extends AppCompatActivity {
                             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                             PendingIntent event = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-                            long milliseconds;
-
-                            if (currentTime < initTime)
-                                milliseconds = (initTime - currentTime) * 60000;
-                            else
-                                milliseconds = (initTime - currentTime + 2359) * 60000;
+                            long milliseconds = TimeCalculator.millisecondsTo(currentTime, initTime);
 
                             alarmManager.set(AlarmManager.RTC_WAKEUP, milliseconds, event);
                             showToast("Not in time. Alarm manager set.");
@@ -168,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if(!areHoursValid()){
-                    showToast("Wrong time format.\nUse '00:00' - '23:59");
+                    showToast("Wrong time format. Use '00:00' - '23:59' and put them in order.");
                     return;
                 }
 
@@ -180,7 +169,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 for(int i = 0; i < 2; i++){
-                    int aux = Integer.parseInt(editTextsHour[i].getText().toString().replace(":" , ""));
+                    //int aux = Integer.parseInt(editTextsHour[i].getText().toString().replace(":" , ""));
+                    int aux = TimeCalculator.stringToIntTime(editTextsHour[i].toString());
                     e.putInt(SharedKeys.Hour(i), aux);
                 }
 
@@ -214,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                     editTextsExitsLat[i].setText(String.valueOf(exitsLatitudes[i]));
                     editTextsExitsLong[i].setText(String.valueOf(exitsLongitudes[i]));
 
-                    editTextsHour[i].setText(intToTime(hours[i]));
+                    editTextsHour[i].setText(TimeCalculator.intToStringTime(hours[i]));
 
                     editor.putFloat(SharedKeys.ExitLatitude(i), exitsLatitudes[i]);
                     editor.putFloat(SharedKeys.ExitLongitude(i), exitsLongitudes[i]);
@@ -251,8 +241,11 @@ public class MainActivity extends AppCompatActivity {
     private boolean areHoursValid(){
             String regex24Hours = "^([01]?[0-9]|2[0-3]):[0-5][0-9]$";
 
-            return editTextsHour[0].getText().toString().matches(regex24Hours) &&
-                    editTextsHour[1].getText().toString().matches(regex24Hours);
+            boolean rightFormat = editTextsHour[0].getText().toString().matches(regex24Hours) && editTextsHour[1].getText().toString().matches(regex24Hours);
+
+            boolean rightOrder = TimeCalculator.stringToIntTime(editTextsHour[0].getText().toString()) < TimeCalculator.stringToIntTime(editTextsHour[1].getText().toString());
+
+            return rightFormat && rightOrder;
     }
 
     private boolean areAllFieldsFull(){
@@ -266,6 +259,7 @@ public class MainActivity extends AppCompatActivity {
                 editTextsHour[i].getText().toString().length() == 0)
                 return false;
         }
+
 
         return true;
     }
@@ -304,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
         for(int i = 0; i < 2; i++){
             editTextsExitsLat[i].setText(String.valueOf(sp.getFloat(SharedKeys.ExitLatitude(i),0)));
             editTextsExitsLong[i].setText(String.valueOf(sp.getFloat(SharedKeys.ExitLongitude(i),0)));
-            editTextsHour[i].setText(intToTime(sp.getInt(SharedKeys.Hour(i), 0)));
+            editTextsHour[i].setText(TimeCalculator.intToStringTime(sp.getInt(SharedKeys.Hour(i), 0)));
         }
     }
 
@@ -348,39 +342,18 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
 
-    public String intToTime(int intTime){
-        String time = String.valueOf(intTime);
 
-        if(time.length() == 1){
-            return "00:0" + intTime;
-        }
-        else if(time.length() == 2){
-            return "00:" + intTime;
-        }
-        else if (time.length() == 3){
-            int hours = intTime / 100;
-            String aux = "0" + hours + ":" + (intTime - (hours * 100));
-            if(aux.length() == 4)
-                aux = aux.concat("0");
-            return aux;
-        }
-        else{
-            int hours = intTime / 100;
-            String aux = hours + ":" + (intTime - (hours*100));
-            if(aux.length() == 4)
-                aux = aux.concat("0");
-            return aux;
-        }
-    }
 
     private boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION);
+        int locationGranted = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION);
+        int smsGranted = ContextCompat.checkSelfPermission(getApplicationContext(), SEND_SMS);
 
-        return result == PackageManager.PERMISSION_GRANTED;
+
+        return locationGranted == PackageManager.PERMISSION_GRANTED && smsGranted == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+        ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, SEND_SMS}, PERMISSION_REQUEST_CODE);
     }
 
 
@@ -390,21 +363,20 @@ public class MainActivity extends AppCompatActivity {
             case PERMISSION_REQUEST_CODE:
                 if (grantResults.length > 0) {
 
-                    boolean locationAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
-                    if (locationAccepted)
-                        showToast("Permission granted");
+                    if (checkPermission())
+                        showToast("Permissions granted");
                     else {
-                        showToast("Permission denied");
+                        showToast("Permissions denied");
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
-                                showMessageOKCancel("You need to allow access to both the permissions",
+                                showMessageOKCancel("You need to grant all the requested permissions",
                                         new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                                    requestPermissions(new String[]{ACCESS_FINE_LOCATION},
+                                                    requestPermissions(new String[]{ACCESS_FINE_LOCATION, SEND_SMS},
                                                             PERMISSION_REQUEST_CODE);
                                                 }
                                             }
